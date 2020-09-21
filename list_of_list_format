@@ -4,29 +4,38 @@ import pickle
 import networkx as nx
 import numpy as np
 from collections import OrderedDict
+import csv
 
-
+filename = "values.csv"
 
 def convert(graph):
     transfer = OrderedDict()
     free = 0
     '''create dictionary to transfer from edges to our new numbering'''
-    for edge in graph:
-        if edge[0] not in transfer.keys():
-            transfer[edge[0]] = free
-            free+=1
-        if edge[1] not in transfer.keys():
-            transfer[edge[1]] = free
-            free+=1
+
+    with open(filename, "r") as csvfile:
+        datareader=csv.reader(csvfile)
+        for edge in datareader:
+
+
+            if transfer.get(int(edge[0]), None) is  None:
+                transfer[int(edge[0])] = free
+                free+=1
+            if transfer.get(int(edge[1]), None) is  None:
+                transfer[int(edge[1])] = free
+                free+=1
+
     '''create the opposite dictionary'''
     transfer2 = OrderedDict((y, x) for x, y in transfer.items())
 
 
     d = {}
     '''starting to create the index list. Unordered is important'''
-    for idx, edge in enumerate(graph):
-        d[transfer[edge[0]]] = d.get(transfer[edge[0]], 0) + 1
-        d[transfer[edge[1]]] = d.get(transfer[edge[1]], 0) + 1
+    with open(filename, "r") as csvfile:
+        datareader=csv.reader(csvfile)
+        for idx, edge in enumerate(datareader):
+            d[transfer[int(edge[0])]] = d.get(transfer[int(edge[0])], 0) + 1
+            d[transfer[int(edge[1])]] = d.get(transfer[int(edge[1])], 0) + 1
 
     list = [0]
     '''transfer the dictionary to list'''
@@ -36,28 +45,30 @@ def convert(graph):
     '''create the second list'''
     list2 = [-1] * len(graph)*2
     space = OrderedDict((x, -1) for x in transfer2.keys())
-    for idx, edge in enumerate(graph):
-        left= transfer[edge[0]]
-        right= transfer[edge[1]]
+    with open(filename, "r") as csvfile:
+        datareader=csv.reader(csvfile)
+        for idx, edge in enumerate(datareader):
+            left= transfer[int(edge[0])]
+            right= transfer[int(edge[1])]
 
-        if space[left]!=-1:
-            space[left] += 1
-            i=space[left]
-        else:
-            i = list[left]
-            space[left]=i
-        list2[i] = right
+            if space[left]!=-1:
+                space[left] += 1
+                i=space[left]
+            else:
+                i = list[left]
+                space[left]=i
+            list2[i] = right
 
-        if space[right] != -1:
-            space[right] += 1
-            i = space[right]
-        else:
-            i = list[right]
-            space[right] = i
-        list2[i] = left
-
+            if space[right] != -1:
+                space[right] += 1
+                i = space[right]
+            else:
+                i = list[right]
+                space[right] = i
+            list2[i] = left
 
     return list,list2,transfer,transfer2
+
 
 def convert_back(graph):
     l1, l2, t1, t2 = convert(graph)
